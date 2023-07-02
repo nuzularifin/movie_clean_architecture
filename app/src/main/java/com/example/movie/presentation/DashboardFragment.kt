@@ -21,11 +21,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.movie.R
+import com.example.movie.core.Constants
 import com.example.movie.core.extentions.goneMultipleViews
 import com.example.movie.core.extentions.reObserve
 import com.example.movie.core.extentions.showToast
 import com.example.movie.core.extentions.visibleMultipleViews
+import com.example.movie.core.utils.RecyclerViewLoadMoreScroll
 import com.example.movie.data.model.Movie
 import com.example.movie.databinding.FragmentFirst2Binding
 import com.example.movie.presentation.adapter.ActionAdapter
@@ -56,11 +59,17 @@ class DashboardFragment : Fragment() {
     private val movies: ArrayList<Movie> = arrayListOf()
     private val latestMovies: ArrayList<Movie> = arrayListOf()
     private val actionMovies: ArrayList<Movie> = arrayListOf()
-    private val searchMovie: ArrayList<Movie> = arrayListOf()
+    private val searchMovie: MutableList<Movie?> = mutableListOf()
+
+    lateinit var scrollListener: RecyclerViewLoadMoreScroll
 
     private val viewModel: MovieViewModel by viewModels()
 
     lateinit var menuHost: MenuHost
+
+    var searchPage = 1
+    var queryInput = ""
+    lateinit var mLayoutManager: RecyclerView.LayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -113,21 +122,42 @@ class DashboardFragment : Fragment() {
             openMovieDetails(movie.id)
         }
 
-        binding.rvMovieSearch.layoutManager = GridLayoutManager(requireContext(), 2)
-        searchMovieAdapter = SearchMovieAdapter(
-            requireContext(),
-            searchMovie
-        )
-        binding.rvMovieSearch.adapter = searchMovieAdapter
-        searchMovieAdapter.onClickMovieDetail = { movie ->
-            openMovieDetails(movie.id)
-        }
-
         viewModel.fetchMovies(page = 1)
         viewModel.fetchLatestMovie(page = 1)
         viewModel.fetchActionMovies(withGenre = 28)
 
         setupObserver()
+        setupListener()
+    }
+
+    private fun setupListener() {
+        mLayoutManager = GridLayoutManager(requireContext(), 2)
+        binding.rvMovieSearch.layoutManager = mLayoutManager
+        searchMovieAdapter = SearchMovieAdapter(
+            requireContext(),
+            searchMovie
+        )
+        binding.rvMovieSearch.adapter = searchMovieAdapter
+        (mLayoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup(){
+            override fun getSpanSize(position: Int): Int {
+                return when(searchMovieAdapter.getItemViewType(position)){
+                    Constants.VIEW_TYPE_ITEM -> 1
+                    Constants.VIEW_TYPE_LOADING -> 2
+                    else -> 1
+                }
+            }
+        }
+        searchMovieAdapter.onClickMovieDetail = { movie ->
+            openMovieDetails(movie.id)
+        }
+        scrollListener = RecyclerViewLoadMoreScroll(mLayoutManager as GridLayoutManager)
+        scrollListener.setOnLoadMoreListener(object : RecyclerViewLoadMoreScroll.OnLoadMoreListener{
+            override fun onLoadMore() {
+                searchMovieAdapter.addLoadingView()
+                viewModel.loadMoreData(page = searchPage++, query = queryInput)
+            }
+        })
+        binding.rvMovieSearch.addOnScrollListener(scrollListener)
     }
 
     private fun setupToolbar() {
@@ -161,7 +191,11 @@ class DashboardFragment : Fragment() {
                         if (query?.isEmpty() == true){
                             showDashboardItems()
                         } else {
-                            query?.let { viewModel.fetchSearchMovie(query = query) }
+                            query?.let {
+                                searchMovieAdapter.removeAllItems()
+                                queryInput = query
+                                searchPage = 1
+                                viewModel.fetchSearchMovie(query = query, page = searchPage) }
                         }
                         myActionMenuItem.collapseActionView()
                         return false
@@ -220,8 +254,17 @@ class DashboardFragment : Fragment() {
                     requireContext().showToast("Movie doesn't exist")
                     hideDashboardItemsShowsEmpty()
                 } else {
-                    searchMovieAdapter.updateList(it)
+                    searchMovieAdapter.removeLoadingView()
+                    searchMovieAdapter.addingItems(it)
+                    scrollListener.setLoaded()
                     hideDashboardItems()
+                }
+            }
+            searchMovieListLoadMore.reObserve(requireActivity()){
+                searchMovieAdapter.removeLoadingView()
+                if (it.isNotEmpty()){
+                    searchMovieAdapter.addingItems(it)
+                    scrollListener.setLoaded()
                 }
             }
         }

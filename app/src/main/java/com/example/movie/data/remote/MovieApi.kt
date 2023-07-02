@@ -40,6 +40,7 @@ interface MovieApi {
 
     @GET("/3/search/movie")
     suspend fun fetchSearchMovie(
+        @Query("page") page: Int,
         @Query("query") query: String,
         @Query("include_adult") includeAdult: Boolean,
         @Query("language") language: String = "en-US",

@@ -38,8 +38,9 @@ class MovieRepositoryImpl(
         return result.body()
     }
 
-    override suspend fun fetchSearchMovie(query: String): MovieResponse? {
+    override suspend fun fetchSearchMovie(query: String, page: Int): MovieResponse? {
         val result = moviesAPI.fetchSearchMovie(
+            page = page,
             query = query,
             includeAdult = false
         )

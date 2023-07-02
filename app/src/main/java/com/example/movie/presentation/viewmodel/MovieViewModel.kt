@@ -30,6 +30,9 @@ class MovieViewModel @Inject constructor(
     private val _searchMovieList = MutableLiveData<List<Movie>>()
     val searchMovieList = _searchMovieList.toLiveData()
 
+    private val _searchMovieListLoadMore = MutableLiveData<List<Movie>>()
+    val searchMovieListLoadMore = _searchMovieListLoadMore.toLiveData()
+
     private val _detailMovie = MutableLiveData<Movie>()
     val detailMovie = _detailMovie.toLiveData()
 
@@ -80,13 +83,13 @@ class MovieViewModel @Inject constructor(
         }
     }
 
-    fun fetchSearchMovie(query: String) {
+    fun fetchSearchMovie(page: Int, query: String) {
         if (query.isEmpty()) {
             _searchMovieList.postValue(emptyList())
         } else {
             viewModelScope.launch {
                 try {
-                    val result = movieRepository.fetchSearchMovie(query)
+                    val result = movieRepository.fetchSearchMovie(query, page)
                     _searchMovieList.postValue(result?.movie)
                 } catch (e: Exception) {
                     Log.e("error", "search_movie: ${e.printStackTrace()}")
@@ -95,13 +98,25 @@ class MovieViewModel @Inject constructor(
         }
     }
 
-    fun fetchDetailMovie(id: Long){
+    fun fetchDetailMovie(id: Long) {
         viewModelScope.launch {
             try {
                 val result = movieRepository.fetchMovieDetail(movieId = id)
                 _detailMovie.postValue(result ?: null)
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 Log.e("error", "details_movie: ${e.printStackTrace()}")
+            }
+        }
+    }
+
+    fun loadMoreData(page: Int, query: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("LoadMore", "loadMoreData: page -> $page")
+                val result = movieRepository.fetchSearchMovie(query, page)
+                _searchMovieListLoadMore.postValue(result?.movie)
+            } catch (e: Exception) {
+                Log.e("error", "search_movie: ${e.printStackTrace()}")
             }
         }
     }

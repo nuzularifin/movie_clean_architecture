@@ -14,7 +14,7 @@ interface MovieRepository {
 
     suspend fun fetchActionMovie(withGenreId: Int) : MovieResponse?
 
-    suspend fun fetchSearchMovie(query: String) : MovieResponse?
+    suspend fun fetchSearchMovie(query: String, page: Int) : MovieResponse?
 
     suspend fun fetchMovieDetail(movieId: Long) : Movie?
 }
