@@ -3,6 +3,7 @@ package com.example.movie.domain.repository
 import com.example.movie.data.model.AuthenticationResponse
 import com.example.movie.data.model.Movie
 import com.example.movie.data.model.MovieResponse
+import com.example.movie.data.model.ReviewResponse
 
 interface MovieRepository {
 
@@ -17,4 +18,6 @@ interface MovieRepository {
     suspend fun fetchSearchMovie(query: String, page: Int) : MovieResponse?
 
     suspend fun fetchMovieDetail(movieId: Long) : Movie?
+
+    suspend fun fetchMovieReviews(movieId: Long, page: Int) : ReviewResponse?
 }

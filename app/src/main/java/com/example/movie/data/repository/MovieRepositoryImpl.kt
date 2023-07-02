@@ -4,6 +4,8 @@ import com.example.movie.core.Constants
 import com.example.movie.data.model.AuthenticationResponse
 import com.example.movie.data.model.Movie
 import com.example.movie.data.model.MovieResponse
+import com.example.movie.data.model.Review
+import com.example.movie.data.model.ReviewResponse
 import com.example.movie.data.remote.MovieApi
 import com.example.movie.domain.repository.MovieRepository
 
@@ -51,6 +53,11 @@ class MovieRepositoryImpl(
         val result = moviesAPI.fetchMovieDetail(
             movieId = movieId
         )
+        return result.body()
+    }
+
+    override suspend fun fetchMovieReviews(movieId: Long, page: Int): ReviewResponse? {
+        val result = moviesAPI.fetchReviews(movieId, page = page)
         return result.body()
     }
 }

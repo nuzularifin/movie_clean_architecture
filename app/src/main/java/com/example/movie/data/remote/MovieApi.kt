@@ -4,6 +4,7 @@ import com.example.movie.core.Constants
 import com.example.movie.data.model.AuthenticationResponse
 import com.example.movie.data.model.Movie
 import com.example.movie.data.model.MovieResponse
+import com.example.movie.data.model.ReviewResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -53,4 +54,12 @@ interface MovieApi {
         @Query("api_key") apiKey: String = Constants.API_KEY,
         @Query("language") language: String = "en-US",
     ) : Response<Movie>
+
+    @GET("/3/movie/{movie_id}/reviews?")
+    suspend fun fetchReviews(
+        @Path("movie_id") movieId: Long,
+        @Query("api_key") apiKey: String = Constants.API_KEY,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int,
+    ) : Response<ReviewResponse>
 }

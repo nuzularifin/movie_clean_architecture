@@ -9,8 +9,10 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.movie.core.Constants
+import com.example.movie.core.extentions.gone
 import com.example.movie.core.extentions.reObserve
 import com.example.movie.core.extentions.showToast
+import com.example.movie.core.extentions.visible
 import com.example.movie.data.model.Movie
 import com.example.movie.databinding.FragmentSecond2Binding
 import com.example.movie.presentation.adapter.LatestAdapter
@@ -45,6 +47,7 @@ class DetailMovieFragment : Fragment() {
         id?.let {
             requireContext().showToast("id : $id")
             viewModel.fetchDetailMovie(it)
+            viewModel.fetchReviewsMovie(1, it)
         }
 
         val latestLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -81,6 +84,19 @@ class DetailMovieFragment : Fragment() {
             detailMovie.reObserve(requireActivity()){ movie ->
                 movie?.let {
                     setupView(movie)
+                }
+            }
+            movieReview.reObserve(requireActivity()){
+                with(binding){
+                    if (it.isNotEmpty()){
+                        llReview.visible()
+                        val review = it.first()
+                        val rating = if (review.authorDetails?.rating != null) "${review.authorDetails.rating}" else "0"
+                        tvUsername.text = " ${review.authorDetails?.username}, rating : $rating"
+                        tvContent.text = review.content
+                    } else {
+                        llReview.gone()
+                    }
                 }
             }
             latestMovieList.reObserve(requireActivity()){

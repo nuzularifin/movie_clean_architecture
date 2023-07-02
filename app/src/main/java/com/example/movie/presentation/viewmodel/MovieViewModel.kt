@@ -8,6 +8,7 @@ import com.example.movie.core.extentions.toLiveData
 import com.example.movie.core.mapper.toAuthentication
 import com.example.movie.data.model.Authentication
 import com.example.movie.data.model.Movie
+import com.example.movie.data.model.Review
 import com.example.movie.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -35,6 +36,9 @@ class MovieViewModel @Inject constructor(
 
     private val _detailMovie = MutableLiveData<Movie>()
     val detailMovie = _detailMovie.toLiveData()
+
+    private val _movieReviews = MutableLiveData<List<Review>>()
+    val movieReview = _movieReviews.toLiveData()
 
     private val _auth = MutableLiveData<Authentication>()
     val auth = _auth.toLiveData()
@@ -117,6 +121,17 @@ class MovieViewModel @Inject constructor(
                 _searchMovieListLoadMore.postValue(result?.movie)
             } catch (e: Exception) {
                 Log.e("error", "search_movie: ${e.printStackTrace()}")
+            }
+        }
+    }
+
+    fun fetchReviewsMovie(page: Int, movieId: Long){
+        viewModelScope.launch {
+            try {
+                val result = movieRepository.fetchMovieReviews(movieId = movieId, page = page)
+                _movieReviews.postValue(result?.movie)
+            } catch (e: Exception) {
+                Log.e("error", "details_movie: ${e.printStackTrace()}")
             }
         }
     }
