@@ -48,6 +48,7 @@ class DetailMovieFragment : Fragment() {
             requireContext().showToast("id : $id")
             viewModel.fetchDetailMovie(it)
             viewModel.fetchReviewsMovie(1, it)
+            viewModel.fetchLatestMovie(page = 1)
         }
 
         val latestLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -59,12 +60,6 @@ class DetailMovieFragment : Fragment() {
         binding.rvLatest.adapter = latestAdapter
 
         setupObserver()
-
-        viewModel.fetchLatestMovie(page = 1)
-
-//        binding.buttonSecond.setOnClickListener {
-//            findNavController().navigate(R.id.action_Second2Fragment_to_First2Fragment)
-//        }
     }
 
     private fun setupView(movie: Movie) {
